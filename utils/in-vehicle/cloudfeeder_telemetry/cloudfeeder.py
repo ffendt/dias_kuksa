@@ -1,11 +1,11 @@
 """
-This script is to collect the required data from the in-vehicle server, `kuksa-val-server`, 
+This script is to collect the required data from the in-vehicle server, `kuksa-val-server`,
 pre-process them, and transmit the result to the DIAS-KUKSA cloud.
 
-The script needs to be located in the same directory where testclient.py 
+The script needs to be located in the same directory where testclient.py
 is also located: ~/kuksa.val/vss-testclient/
 
-Prior to running this script, the following lines should be added to 
+Prior to running this script, the following lines should be added to
 testclient.py:
 # At the end of - 'def do_getValue(self, args)'
 datastore = json.loads(resp)
@@ -29,7 +29,7 @@ def getConfig():
     parser.add_argument("-u", "--username", metavar='\b', help="Credential Authorization Username (e.g., {username}@{tenant-id} ) / Configured in \"Bosch IoT Hub Management API\"", type=str) # "pc01@t20babfe7fb2840119f69e692f184127d"
     parser.add_argument("-P", "--password", metavar='\b', help="Credential Authorization Password / Configured in \"Bosch IoT Hub Management API\"", type=str) # "junhyungki@123"
     parser.add_argument("-c", "--cafile", metavar='\b', help="Server Certificate File (e.g., iothub.crt)", type=str) # "iothub.crt"
-    parser.add_argument("-t", "--type", metavar='\b', help="Transmission Type (e.g., telemetry or event)", type=str) # "telemetry"
+    parser.add_argument("-t", "--topic", metavar='\b', help="Topic to send to (e.g. telemetry or event when using Eclipse Hono", type=str) # "telemetry"
     parser.add_argument("-r", "--resume", action='store_true', help="Resume the application with the accumulated data when restarting", default=False)
     args = parser.parse_args()
     return args
@@ -240,7 +240,9 @@ while True:
             # 6. Format telemetry
             tel_json = json.dumps(tel_dict)
             # Sending device data via Mosquitto_pub (MQTT - Device to Cloud)
-            comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-u', args.username, '-P', args.password, '--cafile', args.cafile, '-t', args.type, '-m', tel_json]
+            # TODO: use username, password, cafile if set
+            comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-t', args.type, '-m', tel_json]
+            # comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-u', args.username, '-P', args.password, '--cafile', args.cafile, '-t', args.type, '-m', tel_json]
 
             # 7. MQTT: Send telemetry to the cloud. (in a JSON format)
             send_telemetry(args.host, args.port, comb, telemetry_queue)
