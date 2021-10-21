@@ -232,6 +232,11 @@ while True:
 
         # A. Proceed to sample data if the aftertreatment system is ready
         if binPro.signals["Aftertreatment1IntakeNOx"] != 3012.75 and binPro.signals["Aftertreatment1OutletNOx"] != 3012.75:
+            # TODO:
+            #  a: make it possible to use own preprocessor
+            #  b: give the complete VISS JSON response value to the preprocessor (client.do_getValue(path)['value'])
+            #  c: own preprocessor should call the bosch-preprocessor and combine to a JSON value: { "viss": <VISS JSON response value>, "preprocessed": <bosch preprocessor result> }
+            #  d: make username, password, cafile parameters optional, so the cloudfeeder can be used with hono/Hub, but also with a local MQTT
             # 5. Preprocess the data set
             tel_dict = preprocessor_bosch.preprocessing(binPro)
             preprocessor_bosch.printTelemetry(tel_dict)
@@ -240,9 +245,8 @@ while True:
             # 6. Format telemetry
             tel_json = json.dumps(tel_dict)
             # Sending device data via Mosquitto_pub (MQTT - Device to Cloud)
-            # TODO: use username, password, cafile if set
-            comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-t', args.type, '-m', tel_json]
-            # comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-u', args.username, '-P', args.password, '--cafile', args.cafile, '-t', args.type, '-m', tel_json]
+            comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-t', args.topic, '-m', tel_json]
+            # comb =['mosquitto_pub', '-d', '-h', args.host, '-p', args.port, '-u', args.username, '-P', args.password, '--cafile', args.cafile, '-t', args.topic, '-m', tel_json]
 
             # 7. MQTT: Send telemetry to the cloud. (in a JSON format)
             send_telemetry(args.host, args.port, comb, telemetry_queue)
